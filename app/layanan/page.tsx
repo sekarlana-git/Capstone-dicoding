@@ -58,30 +58,36 @@ export default function LayananPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token") ?? "guest";
-    try {
-      const response = await fetch("/api/analyst", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+  e.preventDefault();
+  const token = localStorage.getItem("token") ?? "guest";
 
-      const data = await response.json();
-      console.log({ data });
+  try {
+    const response = await fetch("/api/analyst", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
+    });
 
-      setResult({
-        isActive: true,
-        rekomendasi: data.rekomendasi,
-        status: data.status,
-      });
-    } catch (error) {
-      console.error("Failed to submit:", error);
+    if (!response.ok) {
+      throw new Error("Unauthorized or server error");
     }
-  };
+
+    const data = await response.json();
+
+    setResult({
+      isActive: true,
+      rekomendasi: data.rekomendasi ?? [],
+      status: data.status ?? "normal",
+    });
+
+  } catch (error) {
+    console.error("Failed to submit:", error);
+    alert("Silakan login terlebih dahulu.");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-50">
