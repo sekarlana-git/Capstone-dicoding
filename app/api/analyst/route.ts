@@ -63,7 +63,14 @@ export async function POST(request: Request) {
 
   const res = await req.json();
   console.log({ res });
-  const analyst = res.status_gizi;
+  const analyst = res?.status_gizi;
+
+if (!analyst || !recommendations[analyst]) {
+  return NextResponse.json(
+    { error: "Prediction API failed" },
+    { status: 400 }
+  );
+}
 
   const recommendations: {
     [key: string]: string[];
