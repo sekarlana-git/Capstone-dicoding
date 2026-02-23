@@ -62,6 +62,7 @@ export async function POST(request: Request) {
   );
 
   const res = await req.json();
+  console.log("RAILWAY RESPONSE:", res);
   console.log({ res });
   const analyst = res?.status_gizi;
 
