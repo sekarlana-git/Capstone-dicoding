@@ -46,8 +46,8 @@ export async function POST(request: Request) {
   const { age, gender, height, weight, name } = body;
   console.log({ age, gender, height, weight, name });
 
-  const req = await fetch(
-    "https://web-production-09e20.up.railway.app/predict",
+const req = await fetch(
+  "https://web-production-b0bea.up.railway.app/predict",
     {
       method: "POST",
       headers: {
