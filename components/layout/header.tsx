@@ -12,9 +12,11 @@ import { useAuthStore } from "@/lib/auth";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
   const isLogin = useAuthStore((state) => state.isLoggedIn);
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -24,7 +26,9 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10 && !isScrolled) {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
         setIsScrolled(false);
       }
     };
@@ -47,65 +51,57 @@ export default function Header() {
     setIsMenuOpen(false);
     document.body.style.overflow = "auto";
   };
+
   return (
     <header
-      className={`fixed w-full bg-white shadow-md transition-all duration-300 z-50 ${
+      className={`fixed top-0 left-0 w-full bg-white shadow-md transition-all duration-300 z-[9999] ${
         isScrolled ? "py-2" : "py-5"
       }`}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 z-50">
+      <div className="container mx-auto px-4 flex items-center justify-between relative">
+
+        {/* LOGO */}
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/Logo.png"
             alt="Logo"
             width={150}
             height={40}
-            className="h-8 sm:h-10 w-auto transition-all duration-300"
+            className="h-8 sm:h-10 w-auto"
             priority
           />
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* DESKTOP NAVIGATION */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link
-            href="/"
-            className="text-gray-600 hover:text-cyan-500 transition-colors font-medium"
-          >
+          <Link href="/" className="text-gray-600 hover:text-cyan-500 font-medium">
             Beranda
           </Link>
-          <Link
-            href="/tentang-kami"
-            className="text-gray-600 hover:text-cyan-500 transition-colors font-medium"
-          >
+
+          <Link href="/tentang-kami" className="text-gray-600 hover:text-cyan-500 font-medium">
             Tentang Kami
           </Link>
-          <Link
-            href="/layanan"
-            className="text-gray-600 hover:text-cyan-500 transition-colors font-medium"
-          >
+
+          <Link href="/layanan" className="text-gray-600 hover:text-cyan-500 font-medium">
             Layanan
           </Link>
-          <Link
-            href="/kontak-kami"
-            className="text-gray-600 hover:text-cyan-500 transition-colors font-medium"
-          >
+
+          <Link href="/kontak-kami" className="text-gray-600 hover:text-cyan-500 font-medium">
             Kontak Kami
           </Link>
         </nav>
 
-        {/* Desktop Buttons */}
+        {/* DESKTOP BUTTON */}
         {!isLogin ? (
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login">
-              <Button
-                variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
+              <Button variant="outline">
                 Log in
               </Button>
             </Link>
+
             <Link href="/register">
-              <Button className="bg-gradient-to-r from-cyan-400 to-green-400 hover:from-cyan-500 hover:to-green-500 text-white">
+              <Button className="bg-gradient-to-r from-cyan-400 to-green-400 text-white">
                 Register
               </Button>
             </Link>
@@ -118,99 +114,85 @@ export default function Header() {
 
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 text-[#00E240] border border-[#00E240] px-3 py-2 rounded-xl hover:text-red-800 hover:border-red-800"
+              className="flex items-center space-x-2 text-[#00E240] border border-[#00E240] px-3 py-2 rounded-xl"
             >
-              <FiLogOut size={24} />
+              <FiLogOut size={20} />
               <span>Logout</span>
             </button>
           </div>
         )}
 
-        {/* Mobile Menu Button */}
+        {/* MOBILE BUTTON */}
         <button
-          className="md:hidden p-2 text-gray-600 hover:text-cyan-500 focus:outline-none z-50"
+          className="md:hidden p-2 z-[9999]"
           onClick={toggleMenu}
-          aria-label="Toggle menu"
         >
           {isMenuOpen ? (
-            <X className="h-6 w-6" />
+            <X size={26} />
           ) : (
-            <Menu className="h-6 w-6" />
+            <Menu size={26} />
           )}
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* MOBILE MENU */}
       <div
-        className={`fixed inset-0 bg-white z-40 transform transition-all duration-300 ease-in-out ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-0 bg-white z-[9998] transform transition-all duration-300 ${
+          isMenuOpen
+            ? "translate-x-0 pointer-events-auto"
+            : "translate-x-full pointer-events-none"
         } md:hidden pt-20 px-4`}
       >
         <nav className="flex flex-col items-center space-y-6 py-8">
-          <Link
-            href="/"
-            className="text-xl text-gray-700 hover:text-cyan-500 transition-colors py-2 w-full text-center"
-            onClick={closeMenu}
-          >
+
+          <Link href="/" onClick={closeMenu} className="text-xl">
             Beranda
           </Link>
-          <Link
-            href="/tentang-kami"
-            className="text-xl text-gray-700 hover:text-cyan-500 transition-colors py-2 w-full text-center"
-            onClick={closeMenu}
-          >
+
+          <Link href="/tentang-kami" onClick={closeMenu} className="text-xl">
             Tentang Kami
           </Link>
-          <Link
-            href="/layanan"
-            className="text-xl text-gray-700 hover:text-cyan-500 transition-colors py-2 w-full text-center"
-            onClick={closeMenu}
-          >
+
+          <Link href="/layanan" onClick={closeMenu} className="text-xl">
             Layanan
           </Link>
-          <Link
-            href="/kontak-kami"
-            className="text-xl text-gray-700 hover:text-cyan-500 transition-colors py-2 w-full text-center"
-            onClick={closeMenu}
-          >
+
+          <Link href="/kontak-kami" onClick={closeMenu} className="text-xl">
             Kontak Kami
           </Link>
+
           {!isLogin ? (
             <div className="pt-4 flex flex-col space-y-4 w-full max-w-xs">
-              <Link href="/login" className="w-full" onClick={closeMenu}>
-                <Button
-                  variant="outline"
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 py-6 text-base"
-                >
+
+              <Link href="/login" onClick={closeMenu}>
+                <Button variant="outline" className="w-full py-6">
                   Log in
                 </Button>
               </Link>
-              <Link href="/register" className="w-full" onClick={closeMenu}>
-                <Button className="w-full bg-gradient-to-r from-cyan-400 to-green-400 hover:from-cyan-500 hover:to-green-500 text-white py-6 text-base">
+
+              <Link href="/register" onClick={closeMenu}>
+                <Button className="w-full py-6 bg-gradient-to-r from-cyan-400 to-green-400 text-white">
                   Register
                 </Button>
               </Link>
+
             </div>
           ) : (
-            <div className="pt-4 flex justify-between items-center space-y-4 w-full max-w-xs">
+            <div className="pt-4 flex flex-col space-y-4 w-full max-w-xs">
+
               <Link href="/profil">
-                <Image
-                  alt="icon"
-                  src="/images/icon.svg"
-                  width={39}
-                  height={39}
-                />
+                <Button className="w-full">
+                  Profil
+                </Button>
               </Link>
 
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 text-[#00E240] border border-[#00E240] px-3 py-2 rounded-xl hover:text-red-800 hover:border-red-800"
-              >
-                <FiLogOut size={24} />
-                <span>Logout</span>
-              </button>
+              <Button onClick={handleLogout}>
+                Logout
+              </Button>
+
             </div>
           )}
+
         </nav>
       </div>
     </header>
