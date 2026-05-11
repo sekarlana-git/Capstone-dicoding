@@ -8,16 +8,22 @@ import { Status } from "@prisma/client";
 ========================= */
 export async function GET(request: Request) {
   try {
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    const authHeader = request.headers.get("authorization");
 
-    if (!token) {
+    if (!authHeader) {
       return NextResponse.json(
         { error: "Unauthorized: No token provided" },
         { status: 401 }
       );
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET ?? "secret");
+    const token = authHeader.replace("Bearer ", "");
+
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET ?? "secret"
+    );
+
     const userId = payload as number;
 
     if (!userId) {
@@ -38,6 +44,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ user, analyses });
   } catch (error) {
+    console.error("GET ERROR:", error);
+
     return NextResponse.json(
       { error: "Unauthorized or invalid token" },
       { status: 401 }
@@ -51,7 +59,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { age, gender, height, weight, name } = body;
+
+    const {
+      age,
+      gender,
+      height,
+      weight,
+      name,
+    } = body;
+
+    console.log("BODY:", body);
 
     /* =========================
        RECOMMENDATION MAP
@@ -62,16 +79,19 @@ export async function POST(request: Request) {
         "Lanjutkan pemantauan pertumbuhan secara berkala",
         "Pastikan anak cukup istirahat dan aktivitas fisik",
       ],
+
       stunting: [
         "Tingkatkan asupan protein hewani dan nabati",
         "Konsultasikan dengan tenaga medis atau gizi",
         "Pantau tinggi dan berat badan setiap bulan",
       ],
+
       tinggi: [
         "Pastikan asupan kalsium dan vitamin D cukup",
         "Lanjutkan aktivitas fisik yang mendukung postur",
         "Berikan nutrisi seimbang agar pertumbuhan proporsional",
       ],
+
       "severely stunting": [
         "Segera konsultasikan dengan dokter anak atau ahli gizi",
         "Berikan makanan tinggi energi dan zat gizi mikro",
@@ -90,6 +110,7 @@ export async function POST(request: Request) {
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
           umur: age,
           tinggi: height,
@@ -97,6 +118,8 @@ export async function POST(request: Request) {
         }),
       }
     );
+
+    console.log("ML STATUS:", req.status);
 
     if (!req.ok) {
       return NextResponse.json(
@@ -106,6 +129,9 @@ export async function POST(request: Request) {
     }
 
     const res = await req.json();
+
+    console.log("ML RESPONSE:", res);
+
     const analyst = res?.status_gizi;
 
     if (!analyst || !recommendations[analyst]) {
@@ -118,24 +144,38 @@ export async function POST(request: Request) {
     /* =========================
        TOKEN HANDLING
     ========================= */
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
 
-    // Guest mode (tidak simpan DB)
-    if (token === "guest") {
+    const authHeader = request.headers.get("authorization");
+
+    console.log("AUTH HEADER:", authHeader);
+
+    // =========================
+    // GUEST MODE
+    // =========================
+    if (authHeader === "guest") {
       return NextResponse.json({
         status: analyst,
         rekomendasi: recommendations[analyst],
       });
     }
 
-    if (!token) {
+    // =========================
+    // LOGIN MODE
+    // =========================
+    if (!authHeader) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET ?? "secret");
+    const token = authHeader.replace("Bearer ", "");
+
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET ?? "secret"
+    );
+
     const userId = payload as number;
 
     if (!userId) {
@@ -157,8 +197,11 @@ export async function POST(request: Request) {
         status: analyst.split(" ").join("_") as Status,
         height,
         analysisDate: new Date(),
+
         user: {
-          connect: { id: Number(userId) },
+          connect: {
+            id: Number(userId),
+          },
         },
       },
     });
@@ -167,11 +210,18 @@ export async function POST(request: Request) {
       status: analyst,
       rekomendasi: recommendations[analyst],
     });
+
   } catch (error) {
+
     console.error("POST ERROR:", error);
+
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
+      {
+        error: "Internal Server Error",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -181,17 +231,25 @@ export async function POST(request: Request) {
 ========================= */
 export async function DELETE(request: Request) {
   try {
-    const body = await request.json();
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
 
-    if (!token) {
+    const body = await request.json();
+
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET ?? "secret");
+    const token = authHeader.replace("Bearer ", "");
+
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET ?? "secret"
+    );
+
     const userId = payload as number;
 
     if (!userId) {
@@ -202,23 +260,41 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.analisa.delete({
-      where: { id: body.id },
+      where: {
+        id: body.id,
+      },
     });
 
     const [user, analyses] = await prisma.$transaction([
       prisma.user.findUnique({
-        where: { id: Number(userId) },
+        where: {
+          id: Number(userId),
+        },
       }),
+
       prisma.analisa.findMany({
-        where: { userId: Number(userId) },
+        where: {
+          userId: Number(userId),
+        },
       }),
     ]);
 
-    return NextResponse.json({ user, analyses });
+    return NextResponse.json({
+      user,
+      analyses,
+    });
+
   } catch (error) {
+
+    console.error("DELETE ERROR:", error);
+
     return NextResponse.json(
-      { error: "Unauthorized or invalid token" },
-      { status: 401 }
+      {
+        error: "Unauthorized or invalid token",
+      },
+      {
+        status: 401,
+      }
     );
   }
 }
