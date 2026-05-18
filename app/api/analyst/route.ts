@@ -104,7 +104,7 @@ export async function POST(request: Request) {
        CALL ML API (RAILWAY)
     ========================= */
     const req = await fetch(
-      "https://web-production-b0bea.up.railway.app/predict",
+      "https://web-production-40e0a.up.railway.app/predict",
       {
         method: "POST",
         headers: {
